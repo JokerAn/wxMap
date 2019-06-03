@@ -1,0 +1,14 @@
+
+<view class="container">
+  <view class="userinfo">
+    <block>
+      <image bindtap="bindViewTap" class="userinfo-avatar" src="{{userInfo.avatarUrl}}" mode="cover"></image>
+      <text class="userinfo-nickname">{{userInfo.nickName}}</text>
+    </block>
+  </view>
+  <view class="usermotto">
+      <button open-type="getUserInfo" lang="zh_CN" bindgetuserinfo="onGotUserInfo">登录并且获取用户信息</button>
+  </view>
+        <button bindtap="gotoPage">地图页面</button>
+
+</view>

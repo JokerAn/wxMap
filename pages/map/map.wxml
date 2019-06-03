@@ -1,0 +1,11 @@
+<view>
+  <text>我是地图</text>
+  <view>
+  <map id="map" latitude='39.90569' longitude='116.22299' scale="14" 
+    controls="{{controls}}" bindcontroltap="controltap" markers="{{markers}}"
+    bindmarkertap="markertap" polyline="{{polyline}}" bindregionchange="regionchange"
+    show-location circles="{{circles}}" >
+  </map>
+
+  </view>
+</view>
