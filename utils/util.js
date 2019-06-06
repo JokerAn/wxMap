@@ -39,6 +39,12 @@ class utils {
 
 
   }
+  setStorage(key,data){
+    wx.setStorage({
+      key: key,
+      data: data
+    })
+  }
 }
 export {
   utils

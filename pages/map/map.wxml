@@ -1,12 +1,13 @@
 <view id='myMap'>
   <view class='bluetoot'>
-    <text>234+{{devices}}</text>
-    <text>是否使用蓝牙打卡{{msg}}</text>
-    <switch checked='{{bluetootType}}' bindchange="switch1Change" />
+    <!-- <text>234+{{devices}}</text> -->
+    <!-- <text>是否使用蓝牙打卡{{msg}}</text> -->
+    <!-- <switch checked='{{bluetootType}}' bindchange="switch1Change" /> -->
+    <text bindtap='clearStorage'>一键清理本地缓存 </text><text bindtap='clearStorage2'> 返回主页</text>
   </view>
   <view id="mapBox">
     <map id="map" latitude='39.906306' longitude='116.185596' scale="16" bindcontroltap="controltap" bindmarkertap="markertap" polyline="{{polyline}}" show-location circles="{{circles}}">
-      <cover-view class='bottomView' hidden='{{!bluetootType}}'>
+      <cover-view class='bottomView'>
         <cover-view class='btnDK' wx:if='{{devices.length>0}}'>
           <button bindtap='dkAjax' atitle='{{bluetootType}}'>打卡</button>
         </cover-view>

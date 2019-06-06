@@ -1,4 +1,25 @@
 
+<view id='login'>
+  <view>
+    <text>用户名：</text>
+    <input type='text' bindinput='userNameF' value='{{userName}}'></input>
+  </view>
+  <view>
+    <text>密码：</text>
+    <input type='password' bindinput='userPwdF' value='{{userPwd}}'></input>
+  </view>
+  <view class='loginBtnBox'>
+    <button class="login_btn"  open-type="getUserInfo" lang="zh_CN" bindgetuserinfo="onGotUserInfo">登录</button>
+
+  </view>
+  <!-- <view class="canotLogin">
+    <text>忘记密码</text>
+    <navigator url="../register/register" open-type="navigate" >
+      <text>注册</text>
+    </navigator>
+    
+  </view> -->
+</view>
 <view class="container">
   <view class="userinfo">
     <block>
@@ -8,7 +29,6 @@
   </view>
   <view class="usermotto">
   <button open-type="openSetting">打开授权设置页</button>
-  <button open-type="getUserInfo" lang="zh_CN" bindgetuserinfo="onGotUserInfo">获取用户信息</button>
       <!-- <button open-type="getUserInfo" lang="zh_CN" bindgetuserinfo="onGotUserInfo">登录并且获取用户信息</button> -->
   </view>
         <button bindtap="gotoPage">地图页面</button>

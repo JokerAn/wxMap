@@ -7,6 +7,9 @@
 .bluetoot{
   height:10vh;
 }
+.bluetoot>button{
+  width:50vm;
+}
 #mapBox{
   width:750rpx;
   height:90vh;

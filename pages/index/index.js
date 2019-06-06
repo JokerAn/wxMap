@@ -5,9 +5,16 @@ import {
   HTTP
 } from '../../utils/http.js'
 var anHttp = new HTTP();
+import {
+  utils
+} from '../../utils/util.js'
+var util = new utils();
 Page({
   data: {
     userInfo: {},
+    userName: 'admin@ambow.com',
+    userPwd: '652852504B32EC67D17D97E58F63CE2B',
+    canIUse: wx.canIUse('button.open-type.getUserInfo')
   },
   //事件处理函数
   gotoPage: function() {
@@ -18,27 +25,44 @@ Page({
   },
   onLoad: function() {
     let me = this;
-    console.log(app.globalData);
-    //如果获取到了app.globalData.userInfo 就说明 app.js中的获取用户信息的函数执行完了
-    //如果没获取到 说明onload执行的比app.js中的获取用户信息快 那只能在else中的定义一个公共函数
-    //等app.js中的获取用户信息完成后 执行这个函数了 都是挂载在app下 所以能获取到
-    if (app.globalData.userInfo) {
-      this.setData({
-        userInfo: app.globalData.userInfo,
-      })
-    } else {
+    if (wx.getStorageSync('userInfo')) {
+      
+    } else if (this.data.canIUse) {
+      // 由于 getUserInfo 是网络请求，可能会在 Page.onLoad 之后才返回
+      // 所以此处加入 callback 以防止这种情况
       app.userInfoReadyCallback = res => {
-        this.setData({
-          userInfo: res.userInfo,
+        wx.setStorage({
+          key: 'userInfo',
+          data: JSON.stringify(res),
         })
       }
-      console.log('等待回调函数来设置数据');
+    } else {
+      // 在没有 open-type=getUserInfo 版本的兼容处理
+      wx.getUserInfo({
+        success: res => {
+          wx.setStorage({
+            key: 'userInfo',
+            data: JSON.stringify(res),
+          })
+        }
+      })
     }
+    if(wx.getStorageSync('token')){
+      this.getMe();
+    }
+  },
+  onGotUserInfo: function(e) {
+    console.log(e)
+    let userDetail = e.detail;
+    this.setData({
+      userInfo: e.detail.userInfo,
+    })
+    let me = this;
     wx.login({
       success(res) {
         console.log({
           'wx.login': res
-        })
+        });
         if (res.code) {
           anHttp.ajaxServe('get', 'http://10.10.113.28/common/api/v1/auth/wechat' + '?code=' + res.code, null)
             .then(function(result) {
@@ -46,71 +70,73 @@ Page({
               console.log({
                 'http://10.10.113.28/common/api/v1/auth/wechat': result
               });
-              wx.setStorage({
-                key: 'openid',
-                data: result.openid
-              })
-              wx.setStorage({
-                key: 'session_key',
-                data: result['session_key']
-              })
-              wx.setStorage({
-                key: 'expires_in',
-                data: result['expires_in']
-              })
-              console.log(app.globalData);
-              wx.request({ //发送请求
-                url: 'http://10.10.113.28/common/api/v1/auth/decode',
-                data: {
-                  sessionKey: result.session_key,
-                  // encryptedData: me.data.userInfo.encryptedData,
-                  // iv: me.data.userInfo.iv
-                },
-                method: 'post',
-                success: res03 => {
-                  console.log(res03);
-                },
-                fail: err => {
-                  reject(err)
-                  util.showAlert("请求超时", 'none', 1500);
+              util.setStorage('openid', result.openid)
+              util.setStorage('opesession_keynid', result['session_key'])
+              util.setStorage('expires_in', result['expires_in'])
+              anHttp.ajaxServe('post', 'http://10.10.113.28/common/api/v1/auth/decode', {
+                sessionKey: result.session_key,
+                encryptedData: userDetail.encryptedData,
+                iv: userDetail.iv
+              }, null).then(function(result01) {
+                console.log(result01)
+                console.log(wx.getStorageSync('openid'));
+
+
+
+
+
+              //loginAJAX
+                if (me.data.userName === '' || me.data.userPwd === '') {
+                  util.showAlert('请填写用户名和密码！');
+                  return
                 }
+                let data = {
+                  name: me.data.userName,
+                  passWord: me.data.userPwd,
+                };
+                console.log(data);
+                util.showAlert('登陆中...')
+                anHttp.ajaxServe('post', 'http://10.10.113.28/ehr/api/v1/login', {
+                  "username": "admin@ambow.com",
+                  "password": "652852504B32EC67D17D97E58F63CE2B"
+                }).then((res) => {
+                  if (res && res.tokenType && res.token) {
+                    wx.setStorage({
+                      key: 'token',
+                      data: res.tokenType + ' ' + res.token
+                    })
+                    me.getMe()
+                  }
                 })
-              console.log('222222222werwer');
-              // anHttp.ajaxServe('post', 'http://10.10.113.28/common/api/v1/auth/decode', {
-              //     sessionKey: result.session_key,
-              //     encryptedData: e.detail.encryptedData,
-              //     iv: e.detail.iv
-              //   })
-              //   .then((res02) => {
-              //     console.log({
-              //       'http://10.10.113.28/common/api/v1/auth/decode请求成功': res02
-              //     });
-              //   }).catch(function() {
-              //     console.log('请求失败2')
-              //   })
+
+
+
+
+
+
+
+
+
+              })
             }).catch(function(err) {
               console.log('请求失败')
               console.log(err)
             })
-
-
-
-
         } else {
           console.log('登录失败！' + res.errMsg)
         }
       }
 
     })
+
   },
-  onGotUserInfo: function(e) {
-    console.log(e)
-    console.log(e.detail.userInfo)
-    console.log(e.detail.rawData)
-    this.setData({
-      userInfo: e.detail.userInfo,
+  getMe(){
+    anHttp.ajaxServe('get', 'http://10.10.113.28/iot/api/v1/user/me', null).then((result) => {
+      console.log(result);
+      wx.reLaunch({
+        url: '../map/map'
+      })
     })
-    
   },
 
   //获取当前网络状态
@@ -148,5 +174,15 @@ Page({
         console.log(res)
       }, 5000)
     })
-  }
+  },
+  userNameF(e) {
+    this.setData({
+      userName: e.detail.value
+    })
+  },
+  userPwdF(e) {
+    this.setData({
+      userPwd: e.detail.value
+    })
+  },
 })
