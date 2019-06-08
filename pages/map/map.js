@@ -10,6 +10,7 @@ Page({
    */
   data: {
     saomiaoing: false,
+    nums:0,
     msg: 1,
     markers: [{
       id: 0,
@@ -39,8 +40,10 @@ Page({
     }],
     uuids: [
       'FDA50693-A4E2-4FB1-AFCF-C6EB07647825',
-      "EE527551-9C8F-C93C-B9CE-01D9E27D42B4",
-      "70552625-45EE-CCB7-6BCE-6B597EB73EF2"
+      'FDA50693-A4E2-4FB1-AFCF-C6EB07642172',
+      'FDA50693-A4E2-4FB1-AFCF-C6EB07642583',
+      'FDA50693-A4E2-4FB1-AFCF-C6EB07641923',
+      'FDA50693-A4E2-4FB1-AFCF-C6EB07641468'
     ], //uuids
     devices: [], //最终搜索到的uuids
     distanceM: 0, //手机与中心打卡点的距离 单位 米
@@ -50,7 +53,7 @@ Page({
 
   //生命周期函数--监听页面加载
 
-  onLoad: function (options) {
+  onLoad: function(options) {
     let me = this;
     //获取用户手机的位置
     wx.getLocation({
@@ -86,9 +89,11 @@ Page({
             })
             //如果用户打开蓝牙，关闭定时器 并且 开始搜索IBeacon
             console.log('关闭定时器 并且 开始搜索IBeacon');
-            me.startBeacon(me.data.uuids);
+            me.startBeacon(me.data.uuids,function(){
+              me.sendAjax();
+            });
           },
-          fail: function () {
+          fail: function() {
             me.setData({
               bluetootTypeMsg: '蓝牙关闭状态，请打开蓝牙'
             })
@@ -99,20 +104,23 @@ Page({
       }
     })
     //检测蓝牙是否可用
-    wx.onBluetoothAdapterStateChange(function (res) {
+    wx.onBluetoothAdapterStateChange(function(res) {
       console.log('蓝牙适配器是否可用', res.available);
       if (res.available) {
         console.log('蓝牙可用，即将搜索...');
-        this.startBeacon(me.data.uuids);
+        me.startBeacon(me.data.uuids, function () {
+          
+          me.sendAjax();
+        });
       } else {
         console.log('蓝牙关闭状态，请打开蓝牙');
-        this.setData({
+        me.setData({
           bluetootTypeMsg: '蓝牙关闭状态，请打开蓝牙'
         })
       }
     })
     //检测ibeacon的搜索状态
-    wx.onBeaconServiceChange(function (res) {
+    wx.onBeaconServiceChange(function(res) {
       console.log('目前是否处于搜索状态 ' + res.discovering);
     })
 
@@ -123,15 +131,15 @@ Page({
     console.log(e.controlId)
   },
   //开始搜索
-  startBeacon(myUUIDS) {
+  startBeacon(myUUIDS,callback) {
+    callback=callback||function(){};
     let me = this;
     console.log("开始扫描设备...");
-    me.setData({ 
-      devices: [] ,
-      saomiaoing:true,
-      bluetootTypeMsg:'扫描设备中...'
-      })
-    me.setData({ saomiaoing: true });
+    me.setData({
+      devices: [],
+      saomiaoing: true,
+      bluetootTypeMsg: '扫描设备中...'
+    })
     // //检测是否打开蓝牙了
     // wx.openBluetoothAdapter({
     //   success(BluetootResult) {
@@ -140,49 +148,68 @@ Page({
     //     me.setData({
     //       bluetootTypeMsg: '扫描设备中...'
     //     })
-        //搜索设备
-        wx.startBeaconDiscovery({
-          uuids: myUUIDS,
-          success: function (beaconDiscoveryResult) {
-            console.log("扫描设备成功...");
-            console.log('startBeaconDiscovery', beaconDiscoveryResult);
-            //得到设备列表
-            wx.getBeacons({
-              success: function (getBeaconsResult) {
-                console.log(getBeaconsResult);
+    //搜索设备
+      wx.startBeaconDiscovery({
+        uuids: myUUIDS,
+        success: function (beaconDiscoveryResult) {
+          console.log("扫描设备成功...");
+          console.log('startBeaconDiscovery', beaconDiscoveryResult);
+          //得到设备列表
+          wx.getBeacons({
+            success: function (getBeaconsResult) {
+              console.log(getBeaconsResult);
+              
+              if (getBeaconsResult.beacons.length == 0) {
+                let numss=me.data.nums+1;
+                me.setData({
+                  nums:numss
+                })
+                console.log('当前扫描次数是 ' + numss);
+                if (numss > 5) {
+                  me.stopBeacon();
+                } else {
+                  me.stopBeacon(function () {
+                    me.startBeacon(myUUIDS,callback);
+                  });
+                }
+              }else{
                 me.setData({
                   bluetootTypeMsg: '打卡',
-                  devices: ['0000000']
-                })
-                //停止扫描
+                  devices: getBeaconsResult.beacons
+                });
                 me.stopBeacon();
-              },
-              fail: function (getBeaconsResultError) {
-                me.setData({
-                  bluetootTypeMsg: '得到设备列表失败！',
-                })
-                console.log('getBeaconsResultError', getBeaconsResultError);
+                callback();
               }
-            });
-          },
-          fail: function (error) {
-            console.log("扫描设备失败...", error);
+              //停止扫描
 
-            // if (error.errCode == 11003) {
-            //   console.log("扫描设备已经运行了，正在关闭并重新启动", error);
-            //   //停止扫描
-            //   me.stopBeacon(function () {
-            //     me.startBeacon(myUUIDS);
-            //   });
-            // } else {
-              console.log("扫描设备失败，6秒后重新启动", error);
-              setTimeout(() => {
-                me.startBeacon(myUUIDS);
-              }, 6000)
-            // }
+            },
+            fail: function (getBeaconsResultError) {
+              me.setData({
+                bluetootTypeMsg: '得到设备列表失败！',
+              })
+              console.log('getBeaconsResultError', getBeaconsResultError);
+            }
+          });
+        },
+        fail: function (error) {
+          console.log("扫描设备失败...", error);
 
-          }
-        });
+          // if (error.errCode == 11003) {
+          //   console.log("扫描设备已经运行了，正在关闭并重新启动", error);
+          //   //停止扫描
+          //   me.stopBeacon(function () {
+          //     me.startBeacon(myUUIDS,callback);
+          //   });
+          // } else {
+          console.log("扫描设备失败，6秒后重新启动", error);
+          setTimeout(() => {
+            me.startBeacon(myUUIDS, callback);
+          }, 6000)
+          // }
+
+        }
+      });
+    
 
     //   },
     //   fail: function () {
@@ -200,20 +227,24 @@ Page({
     console.log('me.data.saomiaoing= ' + me.data.saomiaoing)
     if (me.data.saomiaoing) {
       wx.stopBeaconDiscovery({
-        success: function (res) {
+        success: function(res) {
           console.log("停止设备扫描！");
-          me.setData({ saomiaoing: false })
+          me.setData({
+            saomiaoing: false,
+            nums: 0
+          })
+        
           if (callback != undefined) {
             callback()
           }
         },
-        fail: function (error) {
+        fail: function(error) {
           console.log("停止设备扫描失败！", error);
           if (error.errCode == 11004) {
 
           } else {
             setTimeout(() => {
-              me.stopBeacon();
+              me.stopBeacon(callback);
             }, 5000)
           }
 
@@ -228,7 +259,7 @@ Page({
   dkAjax() {
     console.log('打卡成功');
   },
-  clearStorage(){
+  clearStorage() {
 
     wx.clearStorage();
   },
@@ -237,5 +268,9 @@ Page({
     wx.redirectTo({
       url: '../index/index',
     })
+  },
+  sendAjax(){
+    console.log(this.data.devices);
+    console.log('我发送了ajax');
   }
 })

@@ -10,6 +10,8 @@
   </view>
   <view class='loginBtnBox'>
     <button class="login_btn"  open-type="getUserInfo" lang="zh_CN" bindgetuserinfo="onGotUserInfo">登录</button>
+        <button class="login_btn"  open-type="getUserInfo" lang="zh_CN" bindtap="loginAn">临时登录</button>
+
 
   </view>
   <!-- <view class="canotLogin">

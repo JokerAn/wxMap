@@ -185,4 +185,9 @@ Page({
       userPwd: e.detail.value
     })
   },
+  loginAn(){
+    wx.reLaunch({
+      url: '../map/map'
+    })
+  }
 })
