@@ -64,6 +64,10 @@ Page({
           'wx.login': res
         });
         if (res.code) {
+          anHttp.ajaxServe('get', 'http://www.jokeran.com:3100/wxxcx/demo/getunionId2' + '?code=' + res.code, null).then((opids)=>{
+            codeDataconsole.log(opids);
+            codeDataconsole.log('------------------------------');
+          })
           anHttp.ajaxServe('get', 'http://10.10.113.28/common/api/v1/auth/wechat' + '?code=' + res.code, null)
             .then(function(result) {
               console.log('请求成功')
