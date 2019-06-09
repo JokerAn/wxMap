@@ -60,9 +60,11 @@ Page({
     let me = this;
     wx.login({
       success(res) {
-        console.log({
-          'wx.login': res
-        });
+        console.log({'wx.login': res});
+        if (me.data.userName === '' || me.data.userPwd === '') {
+          util.showAlert('请填写用户名和密码！');
+          return
+        }
         if (res.code) {
           anHttp.ajaxServe('get', 'http://www.jokeran.com:3100/wxxcx/demo/getunionId2' + '?code=' + res.code, null).then((opids)=>{
             codeDataconsole.log(opids);
@@ -71,9 +73,7 @@ Page({
           anHttp.ajaxServe('get', 'http://10.10.113.28/common/api/v1/auth/wechat' + '?code=' + res.code, null)
             .then(function(result) {
               console.log('请求成功')
-              console.log({
-                'http://10.10.113.28/common/api/v1/auth/wechat': result
-              });
+              console.log({'http://10.10.113.28/common/api/v1/auth/wechat': result});
               util.setStorage('openid', result.openid)
               util.setStorage('opesession_keynid', result['session_key'])
               util.setStorage('expires_in', result['expires_in'])
@@ -90,20 +90,14 @@ Page({
 
 
               //loginAJAX
-                if (me.data.userName === '' || me.data.userPwd === '') {
-                  util.showAlert('请填写用户名和密码！');
-                  return
-                }
-                let data = {
+              
+                let canshu = {
                   name: me.data.userName,
                   passWord: me.data.userPwd,
                 };
-                console.log(data);
+                console.log(canshu);
                 util.showAlert('登陆中...')
-                anHttp.ajaxServe('post', 'http://10.10.113.28/ehr/api/v1/login', {
-                  "username": "admin@ambow.com",
-                  "password": "652852504B32EC67D17D97E58F63CE2B"
-                }).then((res) => {
+                anHttp.ajaxServe('post', 'http://10.10.113.28/ehr/api/v1/login', canshu).then((res) => {
                   if (res && res.tokenType && res.token) {
                     wx.setStorage({
                       key: 'token',

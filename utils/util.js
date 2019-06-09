@@ -45,7 +45,17 @@ class utils {
       data: data
     })
   }
-}
+};
+// getUserInfo=(successF,errorF)=>{
+//   wx.getUserInfo({
+//     success:function(){
+//       successF&&successF();
+//     },
+//     fail:function(){
+//       errorF&&errorF();
+//     }
+//   })
+// }
 export {
   utils
 }
