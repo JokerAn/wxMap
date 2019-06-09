@@ -33,7 +33,7 @@ Page({
       app.userInfoReadyCallback = res => {
         wx.setStorage({
           key: 'userInfo',
-          data: JSON.stringify(res),
+          data: res,
         })
       }
     } else {
@@ -42,7 +42,7 @@ Page({
         success: res => {
           wx.setStorage({
             key: 'userInfo',
-            data: JSON.stringify(res),
+            data: res,
           })
         }
       })
@@ -66,11 +66,8 @@ Page({
           return
         }
         if (res.code) {
-          anHttp.ajaxServe('get', 'http://www.jokeran.com:3100/wxxcx/demo/getunionId2' + '?code=' + res.code, null).then((opids)=>{
-            codeDataconsole.log(opids);
-            codeDataconsole.log('------------------------------');
-          })
-          anHttp.ajaxServe('get', 'http://10.10.113.28/common/api/v1/auth/wechat' + '?code=' + res.code, null)
+          anHttp.ajaxServe('get', 'http://www.jokeran.com:3100/wxxcx/getunionId' + '?code=' + res.code, null)
+          // anHttp.ajaxServe('get', 'http://10.10.113.28/common/api/v1/auth/wechat' + '?code=' + res.code, null)
             .then(function(result) {
               console.log('请求成功')
               console.log({'http://10.10.113.28/common/api/v1/auth/wechat': result});
