@@ -3,6 +3,10 @@ import {
   utils
 } from '../../utils/util.js'
 var util = new utils();
+import {
+  HTTP
+} from '../../utils/http.js'
+var anHttp = new HTTP();
 Page({
 
   /**
@@ -161,12 +165,21 @@ Page({
               
               if (getBeaconsResult.beacons.length == 0) {
                 let numss=me.data.nums+1;
+                console.log('numss = ' + numss);
                 me.setData({
                   nums:numss
                 })
                 console.log('当前扫描次数是 ' + numss);
-                if (numss > 5) {
-                  me.stopBeacon();
+                if (numss > 50) {
+                  me.stopBeacon(function(){
+                    me.setData({
+                      bluetootTypeMsg: '未扫描到设备',
+                      devices: getBeaconsResult.beacons,
+                      saomiaoing: false,
+                      nums: 0
+                    })
+                
+                  });
                 } else {
                   me.stopBeacon(function () {
                     me.startBeacon(myUUIDS,callback);
@@ -177,7 +190,12 @@ Page({
                   bluetootTypeMsg: '打卡',
                   devices: getBeaconsResult.beacons
                 });
-                me.stopBeacon();
+                me.stopBeacon(function () {
+                  me.setData({
+                    saomiaoing: false,
+                    nums: 0
+                  })
+                });
                 callback();
               }
               //停止扫描
@@ -229,10 +247,7 @@ Page({
       wx.stopBeaconDiscovery({
         success: function(res) {
           console.log("停止设备扫描！");
-          me.setData({
-            saomiaoing: false,
-            nums: 0
-          })
+          
         
           if (callback != undefined) {
             callback()
@@ -266,7 +281,7 @@ Page({
   clearStorage2() {
 
     wx.redirectTo({
-      url: '../index/index',
+      url: '../login/login',
     })
   },
   sendAjax(){

@@ -25,6 +25,20 @@ class utils {
       complete: complete
     })
   };
+  /*显示loading */
+  showLoading(title, success, fail, complete) {
+    wx.showLoading({
+      title: title,
+      success: success,
+      fail: fail,
+      complete: complete
+    })
+  }
+
+  /*隐藏loading */
+  hideLoading = () => {
+    wx.hideLoading()
+  }
   distance = (lat1, lng1, lat2, lng2) => {
     lat1 = lat1 || 0;
     lng1 = lng1 || 0;
